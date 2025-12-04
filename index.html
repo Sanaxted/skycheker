@@ -1,1 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление дроном</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-drone"></i> Управление Дроном</h1>
+            <div class="connection-status">
+                <span id="statusDot" class="status-dot"></span>
+                <span id="statusText">Отключен</span>
+            </div>
+        </header>
 
+        <main>
+            <div class="control-panel">
+                <div class="video-feed">
+                    <div class="video-placeholder">
+                        <i class="fas fa-video"></i>
+                        <p>Видеопоток с камеры дрона</p>
+                        <div class="video-controls">
+                            <button id="startVideo" class="btn"><i class="fas fa-play"></i> Включить камеру</button>
+                            <button id="stopVideo" class="btn btn-secondary"><i class="fas fa-stop"></i> Выключить</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="flight-controls">
+                        <h2><i class="fas fa-gamepad"></i> Управление полетом</h2>
+                        
+                        <div class="joystick-container">
+                            <div class="directional-controls">
+                                <div class="control-row">
+                                    <button class="control-btn" id="forward">
+                                        <i class="fas fa-arrow-up"></i>
+                                    </button>
+                                </div>
+                                <div class="control-row">
+                                    <button class="control-btn" id="left">
+                                        <i class="fas fa-arrow-left"></i>
+                                    </button>
+                                    <button class="control-btn" id="stop">
+                                        <i class="fas fa-stop"></i>
+                                    </button>
+                                    <button class="control-btn" id="right">
+                                        <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                                <div class="control-row">
+                                    <button class="control-btn" id="backward">
+                                        <i class="fas fa-arrow-down"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="altitude-controls">
+                                <button class="control-btn altitude-btn" id="takeoff">
+                                    <i class="fas fa-arrow-up"></i> Взлет
+                                </button>
+                                <button class="control-btn altitude-btn" id="land">
+                                    <i class="fas fa-arrow-down"></i> Посадка
+                                </button>
+                                <button class="control-btn altitude-btn" id="up">
+                                    <i class="fas fa-plus"></i> Выше
+                                </button>
+                                <button class="control-btn altitude-btn" id="down">
+                                    <i class="fas fa-minus"></i> Ниже
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings">
+                        <h2><i class="fas fa-cog"></i> Настройки</h2>
+                        
+                        <div class="connection-settings">
+                            <h3>Подключение</h3>
+                            <div class="input-group">
+                                <label for="ipAddress">IP Адрес:</label>
+                                <input type="text" id="ipAddress" placeholder="192.168.1.100" value="192.168.1.100">
+                            </div>
+                            <div class="input-group">
+                                <label for="port">Порт:</label>
+                                <input type="number" id="port" placeholder="8080" value="8080">
+                            </div>
+                            <button id="connectBtn" class="btn btn-primary">
+                                <i class="fas fa-plug"></i> Подключиться
+                            </button>
+                            <button id="disconnectBtn" class="btn btn-secondary">
+                                <i class="fas fa-plug"></i> Отключиться
+                            </button>
+                        </div>
+
+                        <div class="flight-settings">
+                            <h3>Параметры полета</h3>
+                            <div class="input-group">
+                                <label for="speed">Скорость (%):</label>
+                                <input type="range" id="speed" min="10" max="100" value="50">
+                                <span id="speedValue">50</span>
+                            </div>
+                            <div class="input-group">
+                                <label for="altitude">Высота (м):</label>
+                                <input type="number" id="altitude" min="1" max="50" value="10">
+                            </div>
+                        </div>
+
+                        <div class="actions">
+                            <h3>Действия</h3>
+                            <button id="emergencyStop" class="btn btn-danger">
+                                <i class="fas fa-exclamation-triangle"></i> Аварийная остановка
+                            </button>
+                            <button id="returnHome" class="btn btn-warning">
+                                <i class="fas fa-home"></i> Вернуться домой
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="telemetry">
+                    <h2><i class="fas fa-chart-line"></i> Телеметрия</h2>
+                    <div class="telemetry-data">
+                        <div class="data-item">
+                            <span class="data-label">Высота:</span>
+                            <span id="altitudeValue" class="data-value">0 м</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Скорость:</span>
+                            <span id="speedTelemetry" class="data-value">0 км/ч</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Батарея:</span>
+                            <span id="batteryLevel" class="data-value">100%</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Координаты:</span>
+                            <span id="coordinates" class="data-value">0, 0</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Температура:</span>
+                            <span id="temperature" class="data-value">24°C</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Система управления дроном &copy; 2024</p>
+            <p class="warning"><i class="fas fa-exclamation-circle"></i> Управляйте дроном осторожно!</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
