@@ -1,273 +1,287 @@
-class DroneController {
-    constructor() {
-        this.isConnected = false;
-        this.socket = null;
-        this.currentSpeed = 50;
-        this.currentAltitude = 10;
-        this.batteryLevel = 100;
-        
-        this.init();
-    }
+// Основной скрипт для сайта SkyCheker
 
-    init() {
-        this.bindEvents();
-        this.updateTelemetry();
-        this.simulateTelemetry();
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализация приложения
+    initApp();
+});
 
-    bindEvents() {
-        // Кнопки подключения
-        document.getElementById('connectBtn').addEventListener('click', () => this.connect());
-        document.getElementById('disconnectBtn').addEventListener('click', () => this.disconnect());
+function initApp() {
+    // Убрать лоадер
+    setTimeout(() => {
+        document.querySelector('.loader').classList.add('hidden');
+    }, 1500);
 
-        // Управление движением
-        document.getElementById('forward').addEventListener('click', () => this.sendCommand('forward'));
-        document.getElementById('backward').addEventListener('click', () => this.sendCommand('backward'));
-        document.getElementById('left').addEventListener('click', () => this.sendCommand('left'));
-        document.getElementById('right').addEventListener('click', () => this.sendCommand('right'));
-        document.getElementById('stop').addEventListener('click', () => this.sendCommand('stop'));
+    // Инициализация навигации
+    initNavigation();
 
-        // Управление высотой
-        document.getElementById('takeoff').addEventListener('click', () => this.sendCommand('takeoff'));
-        document.getElementById('land').addEventListener('click', () => this.sendCommand('land'));
-        document.getElementById('up').addEventListener('click', () => this.sendCommand('up'));
-        document.getElementById('down').addEventListener('click', () => this.sendCommand('down'));
+    // Инициализация анимаций
+    initAnimations();
 
-        // Кнопки действий
-        document.getElementById('emergencyStop').addEventListener('click', () => this.emergencyStop());
-        document.getElementById('returnHome').addEventListener('click', () => this.sendCommand('return_home'));
+    // Инициализация частиц
+    initParticles();
 
-        // Управление видео
-        document.getElementById('startVideo').addEventListener('click', () => this.startVideo());
-        document.getElementById('stopVideo').addEventListener('click', () => this.stopVideo());
+    // Инициализация демо
+    initDemo();
 
-        // Настройки
-        document.getElementById('speed').addEventListener('input', (e) => {
-            this.currentSpeed = e.target.value;
-            document.getElementById('speedValue').textContent = this.currentSpeed;
-            this.sendCommand('set_speed', { speed: this.currentSpeed });
+    // Инициализация скролла
+    initScroll();
+}
+
+// Навигация по разделам
+function initNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('.section');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const targetSection = this.getAttribute('data-section');
+            
+            // Убрать активный класс со всех элементов
+            navItems.forEach(nav => nav.classList.remove('active'));
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Добавить активный класс текущему элементу
+            this.classList.add('active');
+            
+            // Показать целевую секцию
+            document.getElementById(targetSection).classList.add('active');
+            
+            // Прокрутить к верху секции
+            document.getElementById(targetSection).scrollIntoView({ behavior: 'smooth' });
         });
+    });
+}
 
-        document.getElementById('altitude').addEventListener('change', (e) => {
-            this.currentAltitude = e.target.value;
-            this.sendCommand('set_altitude', { altitude: this.currentAltitude });
-        });
+// Анимации
+function initAnimations() {
+    // Тайпинг текст в hero секции
+    const typingText = document.querySelector('.typing-text');
+    const texts = [
+        "Интеллектуальный мониторинг фасадов",
+        "Искусственный интеллект в действии",
+        "Автопилот для дронов",
+        "Безопасность школ превыше всего"
+    ];
+    let textIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let typingSpeed = 100;
 
-        // Клавиатурное управление
-        document.addEventListener('keydown', (e) => this.handleKeyPress(e));
-    }
-
-    async connect() {
-        const ip = document.getElementById('ipAddress').value;
-        const port = document.getElementById('port').value;
+    function type() {
+        const currentText = texts[textIndex];
         
-        if (!ip || !port) {
-            this.showNotification('Введите IP и порт', 'error');
-            return;
-        }
-
-        try {
-            // Здесь должна быть реальная логика подключения к дрону
-            // Например, через WebSocket или HTTP
-            this.showNotification('Подключение к дрону...', 'info');
-            
-            // Имитация подключения
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            this.isConnected = true;
-            this.updateConnectionStatus(true);
-            this.showNotification('Успешно подключено к дрону!', 'success');
-            
-            // В реальном приложении здесь будет WebSocket соединение:
-            // this.socket = new WebSocket(`ws://${ip}:${port}`);
-            // this.socket.onmessage = (event) => this.handleMessage(event.data);
-            
-        } catch (error) {
-            console.error('Connection error:', error);
-            this.showNotification('Ошибка подключения', 'error');
-        }
-    }
-
-    disconnect() {
-        if (this.socket) {
-            this.socket.close();
-        }
-        
-        this.isConnected = false;
-        this.updateConnectionStatus(false);
-        this.showNotification('Отключено от дрона', 'info');
-    }
-
-    sendCommand(command, data = {}) {
-        if (!this.isConnected) {
-            this.showNotification('Сначала подключитесь к дрону', 'warning');
-            return;
-        }
-
-        const commandData = {
-            command: command,
-            timestamp: Date.now(),
-            data: data
-        };
-
-        console.log('Отправка команды:', commandData);
-        
-        // В реальном приложении:
-        // this.socket.send(JSON.stringify(commandData));
-        
-        this.showNotification(`Команда "${command}" отправлена`, 'info');
-        this.logCommand(command);
-    }
-
-    emergencyStop() {
-        if (confirm('Вы уверены, что хотите выполнить аварийную остановку?')) {
-            this.sendCommand('emergency_stop');
-            this.showNotification('Аварийная остановка!', 'error');
-        }
-    }
-
-    startVideo() {
-        this.showNotification('Запуск видеопотока...', 'info');
-        // Здесь будет логика запуска видео
-        // Например, создание элемента video для потока с камеры
-    }
-
-    stopVideo() {
-        this.showNotification('Остановка видеопотока', 'info');
-        // Остановка видео потока
-    }
-
-    handleKeyPress(event) {
-        if (!this.isConnected) return;
-
-        switch(event.key) {
-            case 'ArrowUp':
-                this.sendCommand('forward');
-                break;
-            case 'ArrowDown':
-                this.sendCommand('backward');
-                break;
-            case 'ArrowLeft':
-                this.sendCommand('left');
-                break;
-            case 'ArrowRight':
-                this.sendCommand('right');
-                break;
-            case ' ':
-                this.sendCommand('stop');
-                break;
-            case 't':
-                this.sendCommand('takeoff');
-                break;
-            case 'l':
-                this.sendCommand('land');
-                break;
-        }
-    }
-
-    updateConnectionStatus(connected) {
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
-        
-        if (connected) {
-            statusDot.classList.add('connected');
-            statusText.textContent = 'Подключен';
-            statusText.style.color = '#2ecc71';
+        if (isDeleting) {
+            typingText.textContent = currentText.substring(0, charIndex - 1);
+            charIndex--;
+            typingSpeed = 50;
         } else {
-            statusDot.classList.remove('connected');
-            statusText.textContent = 'Отключен';
-            statusText.style.color = '#e74c3c';
+            typingText.textContent = currentText.substring(0, charIndex + 1);
+            charIndex++;
+            typingSpeed = 100;
         }
+
+        if (!isDeleting && charIndex === currentText.length) {
+            isDeleting = true;
+            typingSpeed = 1500; // Пауза перед удалением
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            textIndex = (textIndex + 1) % texts.length;
+            typingSpeed = 500; // Пауза перед новым текстом
+        }
+
+        setTimeout(type, typingSpeed);
     }
 
-    updateTelemetry() {
-        // Здесь будет обновление телеметрии с реальными данными
-        // Пока что используем случайные значения для демонстрации
-        document.getElementById('altitudeValue').textContent = 
-            `${(Math.random() * 50).toFixed(1)} м`;
-        document.getElementById('speedTelemetry').textContent = 
-            `${(Math.random() * 30).toFixed(1)} км/ч`;
-        document.getElementById('coordinates').textContent = 
-            `${(Math.random() * 100).toFixed(4)}, ${(Math.random() * 100).toFixed(4)}`;
-        document.getElementById('temperature').textContent = 
-            `${(20 + Math.random() * 10).toFixed(1)}°C`;
-    }
+    // Запустить анимацию через 2 секунды после загрузки
+    setTimeout(type, 2000);
 
-    simulateTelemetry() {
-        // Симуляция обновления телеметрии
-        setInterval(() => {
-            if (this.isConnected) {
-                this.batteryLevel = Math.max(0, this.batteryLevel - 0.1);
-                document.getElementById('batteryLevel').textContent = 
-                    `${this.batteryLevel.toFixed(1)}%`;
-                this.updateTelemetry();
-            }
-        }, 3000);
-    }
-
-    showNotification(message, type = 'info') {
-        // Создаем уведомление
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 
-                               type === 'error' ? 'exclamation-circle' : 
-                               type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
-            <span>${message}</span>
-        `;
-        
-        // Добавляем стили
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${type === 'success' ? '#2ecc71' : 
-                         type === 'error' ? '#e74c3c' : 
-                         type === 'warning' ? '#f39c12' : '#3498db'};
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Удаляем уведомление через 3 секунды
+    // Анимация прогресс-баров
+    const progressBars = document.querySelectorAll('.progress-fill');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0';
         setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-        
-        // Добавляем CSS анимации
-        if (!document.getElementById('notification-styles')) {
-            const style = document.createElement('style');
-            style.id = 'notification-styles';
-            style.textContent = `
-                @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-                @keyframes slideOut {
-                    from { transform: translateX(0); opacity: 1; }
-                    to { transform: translateX(100%); opacity: 0; }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-    }
+            bar.style.width = width;
+        }, 500);
+    });
 
-    logCommand(command) {
-        console.log(`[${new Date().toLocaleTimeString()}] Команда: ${command}`);
-        // Здесь можно добавить логирование в историю команд
+    // Анимация счетчиков
+    const counters = document.querySelectorAll('.stat-number');
+    counters.forEach(counter => {
+        const target = parseInt(counter.textContent);
+        let current = 0;
+        const increment = target / 50;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                counter.textContent = target;
+                clearInterval(timer);
+            } else {
+                counter.textContent = Math.floor(current);
+            }
+        }, 50);
+    });
+
+    // Анимация обнаружения повреждений
+    const detectionBox = document.querySelector('.detection-box');
+    if (detectionBox) {
+        setInterval(() => {
+            detectionBox.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                detectionBox.style.transform = 'scale(1)';
+            }, 300);
+        }, 2000);
     }
 }
 
-// Инициализация контроллера при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => {
-    window.droneController = new DroneController();
+// Частицы в фоне
+function initParticles() {
+    if (typeof particlesJS !== 'undefined') {
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: "#00d4ff" },
+                shape: { type: "circle" },
+                opacity: { value: 0.5, random: true },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#00d4ff",
+                    opacity: 0.2,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: "none",
+                    random: true,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: { enable: true, mode: "repulse" },
+                    onclick: { enable: true, mode: "push" }
+                }
+            },
+            retina_detect: true
+        });
+    }
+}
+
+// Демо функционал
+function initDemo() {
+    // Симуляция полета
+    const simulateBtn = document.getElementById('simulateFlight');
+    if (simulateBtn) {
+        simulateBtn.addEventListener('click', function() {
+            const waypoints = document.querySelectorAll('.waypoint');
+            let current = 0;
+            
+            waypoints.forEach(wp => wp.classList.remove('active'));
+            waypoints[0].classList.add('active');
+            
+            const flightInterval = setInterval(() => {
+                waypoints[current].classList.remove('active');
+                current = (current + 1) % waypoints.length;
+                waypoints[current].classList.add('active');
+                
+                if (current === waypoints.length - 1) {
+                    clearInterval(flightInterval);
+                    setTimeout(() => {
+                        simulateBtn.innerHTML = '<i class="fas fa-check"></i> Полет завершен';
+                        simulateBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                    }, 500);
+                }
+            }, 1000);
+            
+            simulateBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> В полете...';
+            simulateBtn.disabled = true;
+        });
+    }
+
+    // Управление демо
+    const demoButtons = document.querySelectorAll('.btn-control');
+    demoButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            demoButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const action = this.querySelector('i').className;
+            if (action.includes('play')) {
+                startDemo();
+            } else if (action.includes('pause')) {
+                pauseDemo();
+            } else if (action.includes('redo')) {
+                restartDemo();
+            }
+        });
+    });
+}
+
+function startDemo() {
+    console.log('Демо запущено');
+    // Здесь будет логика запуска демо
+}
+
+function pauseDemo() {
+    console.log('Демо на паузе');
+    // Здесь будет логика паузы демо
+}
+
+function restartDemo() {
+    console.log('Демо перезапущено');
+    // Здесь будет логика перезапуска демо
+    location.reload();
+}
+
+// Управление скроллом
+function initScroll() {
+    // Кнопка скролла вверх
+    const scrollTopBtn = document.querySelector('.scroll-top');
+    
+    window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) {
+            scrollTopBtn.style.display = 'flex';
+        } else {
+            scrollTopBtn.style.display = 'none';
+        }
+    });
+    
+    scrollTopBtn.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Плавный скролл для всех якорных ссылок
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+}
+
+// Эффект параллакса для hero секции
+window.addEventListener('scroll', function() {
+    const scrolled = window.pageYOffset;
+    const parallax = document.querySelector('.hero-overlay');
+    if (parallax) {
+        parallax.style.transform = `translateY(${scrolled * 0.5}px)`;
+    }
 });
+
+// Анимация появления элементов при скролле
+const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold
